@@ -41,7 +41,7 @@ let database;                  // Firebase DB
 // 2D Keyboard UI
 let leftArrow, rightArrow;     // holds the left and right UI images for our basic 2D keyboard   
 let ARROW_SIZE;                // UI button size
-let current_letter = 'a';      // current char being displayed on our basic 2D keyboard (starts with 'a')
+let current_letter = 0;      // current char being displayed on our basic 2D keyboard (starts with 'a')
 
 // Runs once before the setup() and loads our data (images, phrases)
 function preload()
@@ -108,13 +108,21 @@ function draw2Dkeyboard()
   // Writes the current letter
   textFont("Arial", 24);
   fill(0);
-  text("a b c d e", width/2, height/2); 
+  text("_",width/2 - 1.5*PPCM, height/2 - 0.5*PPCM)
+  text("abc",width/2, height/2 - 0.5*PPCM)
+  text("def",width/2 + 1.5*PPCM, height/2 - 0.5*PPCM)
   
+  text("ghi",width/2 - 1.5*PPCM, height/2 +0.5*PPCM)
+  text("jkl",width/2, height/2 + 0.5*PPCM)
+  text("mno",width/2 + 1.5*PPCM, height/2 + 0.5*PPCM)
+
+  text("pqrs",width/2 - 1.5*PPCM, height/2 + 1.5*PPCM)
+  text("tuv",width/2, height/2 + 1.5*PPCM)
+  text("wxyz",width/2 + 1.5*PPCM, height/2 + 1.5*PPCM)
+
   // Draws and the left and right arrow buttons
   noFill();
   imageMode(CORNER);
-  image(leftArrow, width/2 - ARROW_SIZE, height/2, ARROW_SIZE, ARROW_SIZE);
-  image(rightArrow, width/2, height/2, ARROW_SIZE, ARROW_SIZE);  
 }
 
 // Evoked when the mouse button was pressed
@@ -125,29 +133,185 @@ function mousePressed()
   {                   
     // Check if mouse click happened within the touch input area
     if(mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM, 3.0*PPCM))  
-    {      
-      // Check if mouse click was on left arrow (2D keyboard)
-      if (mouseClickWithin(width/2 - ARROW_SIZE, height/2, ARROW_SIZE, ARROW_SIZE))
-      {
-        current_letter = getPreviousChar(current_letter);
-        if (current_letter.charCodeAt(0) < '_'.charCodeAt(0)) current_letter = 'z';  // wrap around to z
+    {
+      if(mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM/3, 3.0*PPCM/3)) { //space
+        current_letter = " ";
+        currently_typed += " ";
       }
-      // Check if mouse click was on right arrow (2D keyboard)
-      else if (mouseClickWithin(width/2, height/2, ARROW_SIZE, ARROW_SIZE))
-      {
-        current_letter = getNextChar(current_letter);
-        if (current_letter.charCodeAt(0) > 'z'.charCodeAt(0)) current_letter = '_'; // wrap back to space (i.e., the underscore)
+      else if (mouseClickWithin(width/2 - 2.0*PPCM +4.0*PPCM/3, height/2 - 1.0*PPCM, 4.0*PPCM/3, 3.0*PPCM/3)) { // abc
+        switch (current_letter) {
+          case 'a':
+            current_letter = 'b';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          case 'b':
+            current_letter = 'c';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          case 'c':
+            current_letter = 'a';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          default:
+            current_letter = 'a';
+            currently_typed += current_letter;
+            break;
+        }
       }
-      else
-      {
-        // Click in whitespace indicates a character input (2D keyboard)
-        if (current_letter == '_') currently_typed += " ";                          // if underscore, consider that a space bar
-        else if (current_letter == '`' && currently_typed.length > 0)               // if `, treat that as delete
-          currently_typed = currently_typed.substring(0, currently_typed.length - 1);
-        else if (current_letter != '`') currently_typed += current_letter;          // if not any of the above cases, add the current letter to the entered phrase
+
+      else if (mouseClickWithin(width/2 - 2.0*PPCM + 4.0*PPCM*2/3, height/2 - 1.0*PPCM, 4.0*PPCM/3, 3.0*PPCM/3)) { // def
+        switch (current_letter) {
+          case 'd':
+            current_letter = 'e';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          case 'e':
+            current_letter = 'f';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          case 'f':
+            current_letter = 'd';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          default:
+            current_letter = 'd';
+            currently_typed += current_letter;
+            break;
+        }
+      }
+      
+      else if(mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM +3.0*PPCM/3, 4.0*PPCM/3, 3.0*PPCM/3)) { //ghi
+        switch (current_letter) {
+          case 'g':
+            current_letter = 'h';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          case 'h':
+            current_letter = 'i';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          case 'i':
+            current_letter = 'g';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          default:
+            current_letter = 'g';
+            currently_typed += current_letter;
+            break;
+        }
+      }
+      else if (mouseClickWithin(width/2 - 2.0*PPCM +4.0*PPCM/3, height/2 - 1.0*PPCM + 3.0*PPCM/3, 4.0*PPCM/3, 3.0*PPCM/3)) { //jkl
+        switch (current_letter) {
+          case 'j':
+            current_letter = 'k';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          case 'k':
+            current_letter = 'l';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          case 'l':
+            current_letter = 'j';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          default:
+            current_letter = 'j';
+            currently_typed += current_letter;
+            break;
+        }
+      }
+
+      else if (mouseClickWithin(width/2 - 2.0*PPCM + 4.0*PPCM*2/3, height/2 - 1.0*PPCM + 3.0*PPCM/3, 4.0*PPCM/3, 3.0*PPCM/3)) { //mno
+        switch (current_letter) {
+          case 'm':
+            current_letter = 'n';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          case 'n':
+            current_letter = 'o';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          case 'o':
+            current_letter = 'm';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          default:
+            current_letter = 'm';
+            currently_typed += current_letter;
+            break;
+        }
+      }
+      else if(mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM +3.0*PPCM*2/3, 4.0*PPCM/3, 3.0*PPCM/3)) { //pqrs
+        switch (current_letter) {
+          case 'p':
+            current_letter = 'q';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          case 'q':
+            current_letter = 'r';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          case 'r':
+            current_letter = 's';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          case 's':
+            current_letter = 'p';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          default:
+            current_letter = 'p';
+            currently_typed += current_letter;
+            break;
+        }
+      }
+      else if (mouseClickWithin(width/2 - 2.0*PPCM +4.0*PPCM/3, height/2 - 1.0*PPCM + 3.0*PPCM*2/3, 4.0*PPCM/3, 3.0*PPCM/3)) { //tuv
+        switch (current_letter) {
+          case 't':
+            current_letter = 'u';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          case 'u':
+            current_letter = 'v';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          case 'v':
+            current_letter = 't';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          default:
+            current_letter = 't';
+            currently_typed += current_letter;
+            break;
+        }
+      }
+
+      else if (mouseClickWithin(width/2 - 2.0*PPCM + 4.0*PPCM*2/3, height/2 - 1.0*PPCM + 3.0*PPCM*2/3, 4.0*PPCM/3, 3.0*PPCM/3)) { //wxyz
+        switch (current_letter) {
+          case 'w':
+            current_letter = 'x';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          case 'x':
+            current_letter = 'y';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          case 'y':
+            current_letter = 'z';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          case 'z':
+            current_letter = 'w';
+            currently_typed = currently_typed.replace(/.$/,current_letter);
+            break;
+          default:
+            current_letter = 'z';
+            currently_typed += current_letter;
+            break;
+        }
       }
     }
-    
+
     // Check if mouse click happened within 'ACCEPT' 
     // (i.e., submits a phrase and completes a trial)
     else if (mouseClickWithin(width/2 - 2*PPCM, height/2 - 5.1*PPCM, 4.0*PPCM, 2.0*PPCM))
