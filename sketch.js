@@ -43,6 +43,9 @@ let leftArrow, rightArrow;     // holds the left and right UI images for our bas
 let ARROW_SIZE;                // UI button size
 let current_letter = 0;      // current char being displayed on our basic 2D keyboard (starts with 'a')
 
+let time;
+let lastTime = 0;
+
 // Runs once before the setup() and loads our data (images, phrases)
 function preload()
 {    
@@ -72,7 +75,7 @@ function setup()
 }
 
 function draw()
-{ 
+{
   if(draw_finger_arm)
   {
     background(255);           // clear background
@@ -86,7 +89,7 @@ function draw()
     noStroke();
     fill(125);
     rect(width/2 - 2.0*PPCM, height/2 - 2.0*PPCM, 4.0*PPCM, 1.0*PPCM);
-    textAlign(CENTER); 
+    textAlign(CENTER);
     textFont("Arial", 16);
     fill(0);
     text("NOT INTERACTIVE", width/2, height/2 - 1.3 * PPCM);
@@ -108,7 +111,7 @@ function draw2Dkeyboard()
   // Writes the current letter
   textFont("Arial", 24);
   fill(0);
-  text("_",width/2 - 1.5*PPCM, height/2 - 0.5*PPCM)
+  text("_`",width/2 - 1.5*PPCM, height/2 - 0.5*PPCM)
   text("abc",width/2, height/2 - 0.5*PPCM)
   text("def",width/2 + 1.5*PPCM, height/2 - 0.5*PPCM)
   
@@ -128,6 +131,7 @@ function draw2Dkeyboard()
 // Evoked when the mouse button was pressed
 function mousePressed()
 {
+  time = millis();
   // Only look for mouse presses during the actual test
   if (draw_finger_arm)
   {                   
@@ -135,10 +139,25 @@ function mousePressed()
     if(mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM, 3.0*PPCM))  
     {
       if(mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM/3, 3.0*PPCM/3)) { //space
-        current_letter = " ";
-        currently_typed += " ";
+        if (time-lastTime > 1000 && (current_letter == '_' || current_letter == '`')) {
+          current_letter = 0;
+        }
+        switch (current_letter) {
+          case '_':
+            current_letter = '0';
+            currently_typed = currently_typed.replace(/.$/,'');
+            currently_typed = currently_typed.replace(/.$/,'');
+            break;
+          default:
+            current_letter = '_';
+            currently_typed += current_letter;
+            break;
+        }
       }
       else if (mouseClickWithin(width/2 - 2.0*PPCM +4.0*PPCM/3, height/2 - 1.0*PPCM, 4.0*PPCM/3, 3.0*PPCM/3)) { // abc
+        if (time-lastTime > 1000 && (current_letter == 'a' || current_letter == 'b' || current_letter == 'c')) {
+          current_letter = 0;
+        }
         switch (current_letter) {
           case 'a':
             current_letter = 'b';
@@ -160,6 +179,8 @@ function mousePressed()
       }
 
       else if (mouseClickWithin(width/2 - 2.0*PPCM + 4.0*PPCM*2/3, height/2 - 1.0*PPCM, 4.0*PPCM/3, 3.0*PPCM/3)) { // def
+        if (time-lastTime > 1000 && (current_letter == 'd' || current_letter == 'e' || current_letter == 'f'))
+          current_letter = 0;
         switch (current_letter) {
           case 'd':
             current_letter = 'e';
@@ -181,6 +202,8 @@ function mousePressed()
       }
       
       else if(mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM +3.0*PPCM/3, 4.0*PPCM/3, 3.0*PPCM/3)) { //ghi
+        if (time-lastTime > 1000 && (current_letter == 'g' || current_letter == 'h' || current_letter == 'i'))
+          current_letter = 0;
         switch (current_letter) {
           case 'g':
             current_letter = 'h';
@@ -201,6 +224,8 @@ function mousePressed()
         }
       }
       else if (mouseClickWithin(width/2 - 2.0*PPCM +4.0*PPCM/3, height/2 - 1.0*PPCM + 3.0*PPCM/3, 4.0*PPCM/3, 3.0*PPCM/3)) { //jkl
+        if (time-lastTime > 1000 && (current_letter == 'j' || current_letter == 'k' || current_letter == 'l'))
+          current_letter = 0;
         switch (current_letter) {
           case 'j':
             current_letter = 'k';
@@ -222,6 +247,8 @@ function mousePressed()
       }
 
       else if (mouseClickWithin(width/2 - 2.0*PPCM + 4.0*PPCM*2/3, height/2 - 1.0*PPCM + 3.0*PPCM/3, 4.0*PPCM/3, 3.0*PPCM/3)) { //mno
+        if (time-lastTime > 1000 && (current_letter == 'm' || current_letter == 'n' || current_letter == 'o'))
+          current_letter = 0;
         switch (current_letter) {
           case 'm':
             current_letter = 'n';
@@ -242,6 +269,8 @@ function mousePressed()
         }
       }
       else if(mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM +3.0*PPCM*2/3, 4.0*PPCM/3, 3.0*PPCM/3)) { //pqrs
+        if (time-lastTime > 1000 && (current_letter == 'p' || current_letter == 'q' || current_letter == 'r' || current_letter == 's'))
+          current_letter = 0;
         switch (current_letter) {
           case 'p':
             current_letter = 'q';
@@ -266,6 +295,8 @@ function mousePressed()
         }
       }
       else if (mouseClickWithin(width/2 - 2.0*PPCM +4.0*PPCM/3, height/2 - 1.0*PPCM + 3.0*PPCM*2/3, 4.0*PPCM/3, 3.0*PPCM/3)) { //tuv
+        if (time-lastTime > 1000 && (current_letter == 't' || current_letter == 'u' || current_letter == 'v'))
+          current_letter = 0;
         switch (current_letter) {
           case 't':
             current_letter = 'u';
@@ -287,6 +318,8 @@ function mousePressed()
       }
 
       else if (mouseClickWithin(width/2 - 2.0*PPCM + 4.0*PPCM*2/3, height/2 - 1.0*PPCM + 3.0*PPCM*2/3, 4.0*PPCM/3, 3.0*PPCM/3)) { //wxyz
+        if (time-lastTime > 1000 && (current_letter == 'w' || current_letter == 'x' || current_letter == 'y' || current_letter == "z"))
+          current_letter = 0;
         switch (current_letter) {
           case 'w':
             current_letter = 'x';
@@ -305,7 +338,7 @@ function mousePressed()
             currently_typed = currently_typed.replace(/.$/,current_letter);
             break;
           default:
-            current_letter = 'z';
+            current_letter = 'w';
             currently_typed += current_letter;
             break;
         }
@@ -351,6 +384,7 @@ function mousePressed()
       }
     }
   }
+  lastTime = time;
 }
 
 // Resets variables for second attempt
