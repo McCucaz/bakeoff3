@@ -109,19 +109,19 @@ function draw()
 function draw2Dkeyboard()
 {
   // Writes the current letter
-  textFont("Arial", 24);
+  textFont("Arial", 24 - display_size/6 );
   fill(0);
-  text("_`",width/2 - 1.5*PPCM, height/2 - 0.5*PPCM)
+  text("_`",width/2 - 1.3*PPCM, height/2 - 0.5*PPCM)
   text("abc",width/2, height/2 - 0.5*PPCM)
-  text("def",width/2 + 1.5*PPCM, height/2 - 0.5*PPCM)
+  text("def",width/2 + 1.3*PPCM, height/2 - 0.5*PPCM)
   
-  text("ghi",width/2 - 1.5*PPCM, height/2 +0.5*PPCM)
+  text("ghi",width/2 - 1.3*PPCM, height/2 +0.5*PPCM)
   text("jkl",width/2, height/2 + 0.5*PPCM)
-  text("mno",width/2 + 1.5*PPCM, height/2 + 0.5*PPCM)
+  text("mno",width/2 + 1.3*PPCM, height/2 + 0.5*PPCM)
 
-  text("pqrs",width/2 - 1.5*PPCM, height/2 + 1.5*PPCM)
+  text("pqrs",width/2 - 1.3*PPCM, height/2 + 1.5*PPCM)
   text("tuv",width/2, height/2 + 1.5*PPCM)
-  text("wxyz",width/2 + 1.5*PPCM, height/2 + 1.5*PPCM)
+  text("wxyz",width/2 + 1.3*PPCM, height/2 + 1.5*PPCM)
 
   // Draws and the left and right arrow buttons
   noFill();
@@ -150,7 +150,7 @@ function mousePressed()
             break;
           default:
             current_letter = '_';
-            currently_typed += current_letter;
+            currently_typed += " ";
             break;
         }
       }
