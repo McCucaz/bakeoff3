@@ -566,22 +566,19 @@ function printAndSavePerformance()
       let db_ref = database.ref("First Iteration");
       db_ref.push(attempt_data);
       var topUserPostsRef = firebase.database().ref("First Iteration").orderByChild('wpm_w_penalty').limitToLast(10);
-  }
-  if (attempt >= 1)
-  {
-    textFont("Arial", 18);
-    text ("Leaderboards", width/2, 165);
-    var yIncrease = 25;
-    var places = 10;
-    topUserPostsRef.on('value', (snapshot) => {
-        snapshot.forEach((childSnapshot) => {
-            var name = childSnapshot.val().assessed_by;
-            var score = childSnapshot.val().wpm_w_penalty;
-            text(places + " - " + name+ " with "+ score.toFixed(4) + " words per minute.", width/2, 480-yIncrease);
-            places -= 1;
-            yIncrease += 28;
-        });
-    });
+      textFont("Arial", 18);
+      text ("Leaderboards", width/2, 165);
+      var yIncrease = 25;
+      var places = 10;
+      topUserPostsRef.on('value', (snapshot) => {
+          snapshot.forEach((childSnapshot) => {
+              var name = childSnapshot.val().assessed_by;
+              var score = childSnapshot.val().wpm_w_penalty;
+              text(places + " - " + name+ " with "+ score.toFixed(4) + " words per minute.", width/2, 480-yIncrease);
+              places -= 1;
+              yIncrease += 28;
+          });
+      });
   }
 }
 
