@@ -6,6 +6,7 @@ let student_ID, display_size;                                         // User in
 // Prints the initial UI that prompts that ask for student ID and screen size
 function drawUserIDScreen()
 { 
+
   background(color(0,0,0));                                          // sets background to black
   
   // Text prompt

@@ -45,6 +45,10 @@ let current_letter = 0;      // current char being displayed on our basic 2D key
 
 let time;
 let lastTime = 0;
+let toComplete;
+let locked;
+let clickedX;
+let clickedY;
 
 // Runs once before the setup() and loads our data (images, phrases)
 function preload()
@@ -55,10 +59,25 @@ function preload()
     
   // Loads the target phrases (DO NOT CHANGE!)
   phrases = loadStrings("data/phrases.txt");
-  
+
+  possibleWords = loadStrings("data/wordlist.txt");
+  console.log("loaded");
   // Loads UI elements for our basic keyboard
   leftArrow = loadImage("data/left.png");
   rightArrow = loadImage("data/right.png");
+}
+
+
+function getFirstMatch(string) {
+  let s = string.split(" ");
+  let s2 = s[s.length-1];
+  for (let index = 0; index < possibleWords.length; index++) {
+    const element = possibleWords[index];
+    if (element.startsWith(s2)) {
+      toComplete = element;
+      break;
+    }
+  }
 }
 
 // Runs once at the start
@@ -84,20 +103,14 @@ function draw()
     drawArmAndWatch();         // draws arm and watch background
     writeTargetAndEntered();   // writes the target and entered phrases above the watch
     drawACCEPT();              // draws the 'ACCEPT' button that submits a phrase and completes a trial
-    
-    // Draws the non-interactive screen area (4x1cm) -- DO NOT CHANGE SIZE!
-    noStroke();
-    fill(125);
-    rect(width/2 - 2.0*PPCM, height/2 - 2.0*PPCM, 4.0*PPCM, 1.0*PPCM);
-    textAlign(CENTER);
-    textFont("Arial", 16);
-    fill(0);
-    text("NOT INTERACTIVE", width/2, height/2 - 1.3 * PPCM);
 
+    drawPredictedWord();
+    
     // Draws the touch input area (4x3cm) -- DO NOT CHANGE SIZE!
     stroke(0, 255, 0);
     noFill();
     rect(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM, 3.0*PPCM);
+
 
     draw2Dkeyboard();       // draws our basic 2D keyboard UI
 
@@ -128,6 +141,35 @@ function draw2Dkeyboard()
   imageMode(CORNER);
 }
 
+function drawPredictedWord() {
+  getFirstMatch(currently_typed);
+
+  noStroke();
+  fill(255);
+  rect(width/2 - 2.0*PPCM, height/2 - 2.0*PPCM, 4.0*PPCM, 1.0*PPCM);
+  textAlign(CENTER);
+  textFont("Arial", 16);
+  fill(0);
+  text(toComplete, width/2, height/2 - 1.3 * PPCM);
+}
+
+function complete() {
+  currently_typed = currently_typed.substring(0,currently_typed.length-1)
+  getFirstMatch(currently_typed)
+  let st = currently_typed.split(" ");
+  
+  let newWord = "";
+  for (let index = 0; index < st.length-1; index++) {
+    newWord += st[index] + " ";
+  }
+  currently_typed = newWord + toComplete + " ";
+}
+
+function mouseReleased() {
+  if (clickedY != 0 && clickedY > height/2 && mouseY < height/2)
+    complete();
+}
+
 // Evoked when the mouse button was pressed
 function mousePressed()
 {
@@ -138,8 +180,10 @@ function mousePressed()
     // Check if mouse click happened within the touch input area
     if(mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM, 3.0*PPCM))  
     {
+      clickedX = mouseX;
+      clickedY = mouseY;
       if(mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM/3, 3.0*PPCM/3)) { //space
-        if (time-lastTime > 1000 && (current_letter == '_' || current_letter == '`')) {
+        if (time-lastTime > 700 && (current_letter == '_' || current_letter == '`')) {
           current_letter = 0;
         }
         switch (current_letter) {
@@ -155,7 +199,7 @@ function mousePressed()
         }
       }
       else if (mouseClickWithin(width/2 - 2.0*PPCM +4.0*PPCM/3, height/2 - 1.0*PPCM, 4.0*PPCM/3, 3.0*PPCM/3)) { // abc
-        if (time-lastTime > 1000 && (current_letter == 'a' || current_letter == 'b' || current_letter == 'c')) {
+        if (time-lastTime > 600 && (current_letter == 'a' || current_letter == 'b' || current_letter == 'c')) {
           current_letter = 0;
         }
         switch (current_letter) {
@@ -179,7 +223,7 @@ function mousePressed()
       }
 
       else if (mouseClickWithin(width/2 - 2.0*PPCM + 4.0*PPCM*2/3, height/2 - 1.0*PPCM, 4.0*PPCM/3, 3.0*PPCM/3)) { // def
-        if (time-lastTime > 1000 && (current_letter == 'd' || current_letter == 'e' || current_letter == 'f'))
+        if (time-lastTime > 600 && (current_letter == 'd' || current_letter == 'e' || current_letter == 'f'))
           current_letter = 0;
         switch (current_letter) {
           case 'd':
@@ -202,7 +246,7 @@ function mousePressed()
       }
       
       else if(mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM +3.0*PPCM/3, 4.0*PPCM/3, 3.0*PPCM/3)) { //ghi
-        if (time-lastTime > 1000 && (current_letter == 'g' || current_letter == 'h' || current_letter == 'i'))
+        if (time-lastTime > 600 && (current_letter == 'g' || current_letter == 'h' || current_letter == 'i'))
           current_letter = 0;
         switch (current_letter) {
           case 'g':
@@ -224,7 +268,7 @@ function mousePressed()
         }
       }
       else if (mouseClickWithin(width/2 - 2.0*PPCM +4.0*PPCM/3, height/2 - 1.0*PPCM + 3.0*PPCM/3, 4.0*PPCM/3, 3.0*PPCM/3)) { //jkl
-        if (time-lastTime > 1000 && (current_letter == 'j' || current_letter == 'k' || current_letter == 'l'))
+        if (time-lastTime > 600 && (current_letter == 'j' || current_letter == 'k' || current_letter == 'l'))
           current_letter = 0;
         switch (current_letter) {
           case 'j':
@@ -247,7 +291,7 @@ function mousePressed()
       }
 
       else if (mouseClickWithin(width/2 - 2.0*PPCM + 4.0*PPCM*2/3, height/2 - 1.0*PPCM + 3.0*PPCM/3, 4.0*PPCM/3, 3.0*PPCM/3)) { //mno
-        if (time-lastTime > 1000 && (current_letter == 'm' || current_letter == 'n' || current_letter == 'o'))
+        if (time-lastTime > 600 && (current_letter == 'm' || current_letter == 'n' || current_letter == 'o'))
           current_letter = 0;
         switch (current_letter) {
           case 'm':
@@ -269,7 +313,7 @@ function mousePressed()
         }
       }
       else if(mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM +3.0*PPCM*2/3, 4.0*PPCM/3, 3.0*PPCM/3)) { //pqrs
-        if (time-lastTime > 1000 && (current_letter == 'p' || current_letter == 'q' || current_letter == 'r' || current_letter == 's'))
+        if (time-lastTime > 600 && (current_letter == 'p' || current_letter == 'q' || current_letter == 'r' || current_letter == 's'))
           current_letter = 0;
         switch (current_letter) {
           case 'p':
@@ -295,7 +339,7 @@ function mousePressed()
         }
       }
       else if (mouseClickWithin(width/2 - 2.0*PPCM +4.0*PPCM/3, height/2 - 1.0*PPCM + 3.0*PPCM*2/3, 4.0*PPCM/3, 3.0*PPCM/3)) { //tuv
-        if (time-lastTime > 1000 && (current_letter == 't' || current_letter == 'u' || current_letter == 'v'))
+        if (time-lastTime > 600 && (current_letter == 't' || current_letter == 'u' || current_letter == 'v'))
           current_letter = 0;
         switch (current_letter) {
           case 't':
@@ -318,7 +362,7 @@ function mousePressed()
       }
 
       else if (mouseClickWithin(width/2 - 2.0*PPCM + 4.0*PPCM*2/3, height/2 - 1.0*PPCM + 3.0*PPCM*2/3, 4.0*PPCM/3, 3.0*PPCM/3)) { //wxyz
-        if (time-lastTime > 1000 && (current_letter == 'w' || current_letter == 'x' || current_letter == 'y' || current_letter == "z"))
+        if (time-lastTime > 600 && (current_letter == 'w' || current_letter == 'x' || current_letter == 'y' || current_letter == "z"))
           current_letter = 0;
         switch (current_letter) {
           case 'w':
@@ -349,6 +393,8 @@ function mousePressed()
     // (i.e., submits a phrase and completes a trial)
     else if (mouseClickWithin(width/2 - 2*PPCM, height/2 - 5.1*PPCM, 4.0*PPCM, 2.0*PPCM))
     {
+      clickedX = mouseX;
+      clickedY = mouseY;
       // Saves metrics for the current trial
       letters_expected += target_phrase.trim().length;
       letters_entered += currently_typed.trim().length;
@@ -383,6 +429,10 @@ function mousePressed()
         }
       }
     }
+    else {
+      clickedX = 0;
+      clickedY = 0;
+    }
   }
   lastTime = time;
 }
@@ -408,6 +458,21 @@ function startSecondAttempt()
   second_attempt_button.remove();
   draw_finger_arm      = true;
   attempt_start_time   = millis();  
+}
+
+function thank() {
+  let opinion = comments_input.value()
+  submit_button.remove();
+  comments_input.remove();
+  text("Thank you for your participation!",width/2, 900);
+  
+  let c = color(0, 0, 0);
+  fill(c);
+  noStroke();
+  ellipse(width/2,800,width,40,1);
+
+  let db_ref = database.ref("Opinions");
+  db_ref.push(opinion);
 }
 
 // Print and save results at the end of 2 trials
@@ -443,6 +508,17 @@ function printAndSavePerformance()
   text("Penalty: " + penalty.toFixed(2), width / 2, height / 2 + h+60);
   text("WPM with penalty: " + wpm_w_penalty.toFixed(2), width / 2, height / 2 + h+80);
 
+  if (attempt > 0) {
+    
+    text("If you have any suggestions or advices that would increase your performance, please write them down below.", width/2, 800);
+    comments_input = createInput('');                                 // create input field
+    comments_input.position(width/2-200, 830);
+    comments_input.size(400,30);
+    submit_button = createButton('SUBMIT');
+    submit_button.position(width/2 - submit_button.width/2, 900);
+    submit_button.mouseReleased(thank);
+  }
+
   // Saves results (DO NOT CHANGE!)
   let attempt_data = 
   {
@@ -471,6 +547,41 @@ function printAndSavePerformance()
     // Add user performance results
     let db_ref = database.ref('G' + GROUP_NUMBER);
     db_ref.push(attempt_data);
+  }
+  else
+  {
+      // Change the firebase config
+      var firebaseConfig = {
+        apiKey: "AIzaSyAXut58LmRSwNrNWa56WH8hiPya4OuhAbQ",
+        authDomain: "bakeoff3-1c7b1.firebaseapp.com",
+        databaseURL: "https://bakeoff3-1c7b1-default-rtdb.europe-west1.firebasedatabase.app/",
+        storageBucket: "bakeoff3-1c7b1.appspot.com"
+      };
+      if (attempt === 0)
+      {
+          firebase.initializeApp(firebaseConfig);
+          database = firebase.database();
+      }
+      // Add user performance results
+      let db_ref = database.ref("First Iteration");
+      db_ref.push(attempt_data);
+      var topUserPostsRef = firebase.database().ref("First Iteration").orderByChild('wpm_w_penalty').limitToLast(10);
+  }
+  if (attempt >= 1)
+  {
+    textFont("Arial", 18);
+    text ("Leaderboards", width/2, 165);
+    var yIncrease = 25;
+    var places = 10;
+    topUserPostsRef.on('value', (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+            var name = childSnapshot.val().assessed_by;
+            var score = childSnapshot.val().wpm_w_penalty;
+            text(places + " - " + name+ " with "+ score.toFixed(4) + " words per minute.", width/2, 480-yIncrease);
+            places -= 1;
+            yIncrease += 28;
+        });
+    });
   }
 }
 
