@@ -6,8 +6,8 @@
 // p5.js reference: https://p5js.org/reference/
 
 // Database (CHANGE THESE!)
-const GROUP_NUMBER   = 0;      // add your group number here as an integer (e.g., 2, 3)
-const BAKE_OFF_DAY   = false;  // set to 'true' before sharing during the simulation and bake-off days
+const GROUP_NUMBER   = 46;      // add your group number here as an integer (e.g., 2, 3)
+const BAKE_OFF_DAY   = true;  // set to 'true' before sharing during the simulation and bake-off days
 
 let PPI, PPCM;                 // pixel density (DO NOT CHANGE!)
 let second_attempt_button;     // button that starts the second attempt (DO NOT CHANGE!)
@@ -39,9 +39,9 @@ let errors           = 0;      // a running total of the number of errors (when 
 let database;                  // Firebase DB
 
 // 2D Keyboard UI
-let leftArrow, rightArrow;     // holds the left and right UI images for our basic 2D keyboard   
+let erase;
 let ARROW_SIZE;                // UI button size
-let current_letter = 0;      // current char being displayed on our basic 2D keyboard (starts with 'a')
+let current_letter = -1;      // current char being displayed on our basic 2D keyboard (starts with 'a')
 
 let time;
 let lastTime = 0;
@@ -60,22 +60,32 @@ function preload()
   // Loads the target phrases (DO NOT CHANGE!)
   phrases = loadStrings("data/phrases.txt");
 
-  possibleWords = loadStrings("data/wordlist.txt");
-  console.log("loaded");
-  // Loads UI elements for our basic keyboard
-  leftArrow = loadImage("data/left.png");
-  rightArrow = loadImage("data/right.png");
-}
+  // Loads UI elements for our keyboard
+  erase = loadImage("erase.png");
 
+  // Loads prediction word lists
+  possibleWords = loadStrings("data/wordlist.txt");
+  commonPairs = loadStrings("data/pairwords.txt");
+  console.log("loaded");
+}
 
 function getFirstMatch(string) {
   let s = string.split(" ");
   let s2 = s[s.length-1];
+  let prevWord = s[s.length-2];
+  for (let index = 0; index < commonPairs.length; index++) {
+    const element = commonPairs[index];
+    let el = element.split(" ");
+    if (el[0].toLowerCase() == prevWord && el[1].toLowerCase().startsWith(s2)) {
+      toComplete = el[1].toLowerCase();
+      return;
+    }
+  }
   for (let index = 0; index < possibleWords.length; index++) {
     const element = possibleWords[index];
     if (element.startsWith(s2)) {
       toComplete = element;
-      break;
+      return;
     }
   }
 }
@@ -124,17 +134,18 @@ function draw2Dkeyboard()
   // Writes the current letter
   textFont("Arial", 24 - display_size/6 );
   fill(0);
-  text("_`",width/2 - 1.3*PPCM, height/2 - 0.5*PPCM)
-  text("abc",width/2, height/2 - 0.5*PPCM)
-  text("def",width/2 + 1.3*PPCM, height/2 - 0.5*PPCM)
-  
-  text("ghi",width/2 - 1.3*PPCM, height/2 +0.5*PPCM)
-  text("jkl",width/2, height/2 + 0.5*PPCM)
-  text("mno",width/2 + 1.3*PPCM, height/2 + 0.5*PPCM)
+  text("_",width/2 - 1.6*PPCM, height/2 - 0.5*PPCM);
+  image(erase, width/2 - PPCM, height/2 - 0.5*PPCM - 5, 20, 20);
+  text("abc",width/2, height/2 - 0.5*PPCM);
+  text("def",width/2 + 1.3*PPCM, height/2 - 0.5*PPCM);
 
-  text("pqrs",width/2 - 1.3*PPCM, height/2 + 1.5*PPCM)
-  text("tuv",width/2, height/2 + 1.5*PPCM)
-  text("wxyz",width/2 + 1.3*PPCM, height/2 + 1.5*PPCM)
+  text("ghi",width/2 - 1.3*PPCM, height/2 +0.5*PPCM);
+  text("jkl",width/2, height/2 + 0.5*PPCM);
+  text("mno",width/2 + 1.3*PPCM, height/2 + 0.5*PPCM);
+
+  text("pqrs",width/2 - 1.3*PPCM, height/2 + 1.5*PPCM);
+  text("tuv",width/2, height/2 + 1.5*PPCM);
+  text("wxyz",width/2 + 1.3*PPCM, height/2 + 1.5*PPCM);
 
   // Draws and the left and right arrow buttons
   noFill();
@@ -142,20 +153,23 @@ function draw2Dkeyboard()
 }
 
 function drawPredictedWord() {
-  getFirstMatch(currently_typed);
-
   noStroke();
   fill(255);
   rect(width/2 - 2.0*PPCM, height/2 - 2.0*PPCM, 4.0*PPCM, 1.0*PPCM);
   textAlign(CENTER);
   textFont("Arial", 16);
   fill(0);
-  text(toComplete, width/2, height/2 - 1.3 * PPCM);
+  if (current_letter == -1) {
+    textFont("Arial", 12);
+    text("Swipe up to complete", width/2, height/2 - 1.3 * PPCM);
+  }
+  else
+    text(toComplete, width/2, height/2 - 1.3 * PPCM);
 }
 
 function complete() {
-  currently_typed = currently_typed.substring(0,currently_typed.length-1)
-  getFirstMatch(currently_typed)
+  currently_typed = currently_typed.substring(0,currently_typed.length-1);
+  getFirstMatch(currently_typed);
   let st = currently_typed.split(" ");
   
   let newWord = "";
@@ -163,10 +177,12 @@ function complete() {
     newWord += st[index] + " ";
   }
   currently_typed = newWord + toComplete + " ";
+  getFirstMatch(currently_typed);
+
 }
 
 function mouseReleased() {
-  if (clickedY != 0 && clickedY > height/2 && mouseY < height/2)
+  if (clickedY != 0 && clickedY > mouseY+20)
     complete();
 }
 
@@ -182,21 +198,14 @@ function mousePressed()
     {
       clickedX = mouseX;
       clickedY = mouseY;
-      if(mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM/3, 3.0*PPCM/3)) { //space
-        if (time-lastTime > 700 && (current_letter == '_' || current_letter == '`')) {
-          current_letter = 0;
-        }
-        switch (current_letter) {
-          case '_':
-            current_letter = '0';
-            currently_typed = currently_typed.replace(/.$/,'');
-            currently_typed = currently_typed.replace(/.$/,'');
-            break;
-          default:
-            current_letter = '_';
-            currently_typed += " ";
-            break;
-        }
+      if(mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 2.0*PPCM/3, 3.0*PPCM/3)) { //space
+        current_letter = '_';
+        currently_typed += " ";
+      }
+
+      else if (mouseClickWithin(width/2 - 1.5*PPCM, height/2 - 1.0*PPCM, 2.0*PPCM/3, 3.0*PPCM/3)) { 
+        current_letter = 0;
+        currently_typed = currently_typed.replace(/.$/,'')
       }
       else if (mouseClickWithin(width/2 - 2.0*PPCM +4.0*PPCM/3, height/2 - 1.0*PPCM, 4.0*PPCM/3, 3.0*PPCM/3)) { // abc
         if (time-lastTime > 600 && (current_letter == 'a' || current_letter == 'b' || current_letter == 'c')) {
@@ -425,7 +434,7 @@ function mousePressed()
         {
           second_attempt_button = createButton('START 2ND ATTEMPT');
           second_attempt_button.mouseReleased(startSecondAttempt);
-          second_attempt_button.position(width/2 - second_attempt_button.size().width/2, height/2 + 200);
+          second_attempt_button.position(width/2 - second_attempt_button.size().width/2, height/2 + 250);
         }
       }
     }
@@ -434,6 +443,7 @@ function mousePressed()
       clickedY = 0;
     }
   }
+  getFirstMatch(currently_typed);
   lastTime = time;
 }
 
@@ -452,12 +462,12 @@ function startSecondAttempt()
   currently_typed      = "";
   CPS                  = 0;
   
-  current_letter       = 'a';
+  current_letter       = -1;
   
   // Show the watch and keyboard again
   second_attempt_button.remove();
   draw_finger_arm      = true;
-  attempt_start_time   = millis();  
+  attempt_start_time   = millis();
 }
 
 function thank() {
@@ -485,6 +495,7 @@ function printAndSavePerformance()
   let penalty          = max(0, (errors - freebie_errors) / attempt_duration); 
   let wpm_w_penalty    = max((wpm - penalty),0);                                   // minus because higher WPM is better: NET WPM
   let timestamp        = day() + "/" + month() + "/" + year() + "  " + hour() + ":" + minute() + ":" + second();
+  let CPS              = letters_entered / attempt_duration;
   
   background(color(0,0,0));    // clears screen
   cursor();                    // shows the cursor again
@@ -507,6 +518,7 @@ function printAndSavePerformance()
   text("Freebie errors: " + freebie_errors.toFixed(2), width / 2, height / 2 + h+40);
   text("Penalty: " + penalty.toFixed(2), width / 2, height / 2 + h+60);
   text("WPM with penalty: " + wpm_w_penalty.toFixed(2), width / 2, height / 2 + h+80);
+  text("CPS: "+CPS.toFixed(2), width / 2, height / 2 + h+100);
 
   if (attempt > 0) {
     
