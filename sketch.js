@@ -138,8 +138,8 @@ function draw()
     noStroke();
     fill(0);
     textFont("Arial", 9);
-    text("space",width/2 -1*PPCM, height/2 + 1.9*PPCM);
-    text("delete",width/2 + 1*PPCM, height/2 + 1.9*PPCM);
+    text("erase",width/2 -1*PPCM, height/2 + 1.9*PPCM);
+    text("space",width/2 + 1*PPCM, height/2 + 1.9*PPCM);
     drawArrow(v0, v1, 'red');
     drawArrow(v0, v2, 'green');
     pop();
