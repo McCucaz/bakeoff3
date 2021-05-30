@@ -7,7 +7,7 @@
 
 // Database (CHANGE THESE!)
 const GROUP_NUMBER   = 46;      // add your group number here as an integer (e.g., 2, 3)
-const BAKE_OFF_DAY   = true;  // set to 'true' before sharing during the simulation and bake-off days
+const BAKE_OFF_DAY   = false;  // set to 'true' before sharing during the simulation and bake-off days
 
 let PPI, PPCM;                 // pixel density (DO NOT CHANGE!)
 let second_attempt_button;     // button that starts the second attempt (DO NOT CHANGE!)
@@ -39,16 +39,16 @@ let errors           = 0;      // a running total of the number of errors (when 
 let database;                  // Firebase DB
 
 // 2D Keyboard UI
-let erase;
 let ARROW_SIZE;                // UI button size
 let current_letter = -1;      // current char being displayed on our basic 2D keyboard (starts with 'a')
 
 let time;
 let lastTime = 0;
 let toComplete;
-let locked;
+let toComplete2;
 let clickedX;
 let clickedY;
+let locked;
 
 // Runs once before the setup() and loads our data (images, phrases)
 function preload()
@@ -60,9 +60,6 @@ function preload()
   // Loads the target phrases (DO NOT CHANGE!)
   phrases = loadStrings("data/phrases.txt");
 
-  // Loads UI elements for our keyboard
-  erase = loadImage("erase.png");
-
   // Loads prediction word lists
   possibleWords = loadStrings("data/wordlist.txt");
   commonPairs = loadStrings("data/pairwords.txt");
@@ -73,19 +70,32 @@ function getFirstMatch(string) {
   let s = string.split(" ");
   let s2 = s[s.length-1];
   let prevWord = s[s.length-2];
+  let wordFound = false;
   for (let index = 0; index < commonPairs.length; index++) {
     const element = commonPairs[index];
     let el = element.split(" ");
     if (el[0].toLowerCase() == prevWord && el[1].toLowerCase().startsWith(s2)) {
-      toComplete = el[1].toLowerCase();
-      return;
+      if(wordFound) {
+        toComplete2 = el[1].toLowerCase();
+        return;
+      }
+      else {
+        toComplete = el[1].toLowerCase();
+        wordFound = true;
+      }
     }
   }
   for (let index = 0; index < possibleWords.length; index++) {
     const element = possibleWords[index];
     if (element.startsWith(s2)) {
-      toComplete = element;
-      return;
+      if(wordFound) {
+        toComplete2 = element;
+        return;
+      }
+      else {
+        toComplete = element;
+        wordFound = true;
+      }
     }
   }
 }
@@ -134,8 +144,6 @@ function draw2Dkeyboard()
   // Writes the current letter
   textFont("Arial", 24 - display_size/6 );
   fill(0);
-  text("_",width/2 - 1.6*PPCM, height/2 - 0.5*PPCM);
-  image(erase, width/2 - PPCM, height/2 - 0.5*PPCM - 5, 20, 20);
   text("abc",width/2, height/2 - 0.5*PPCM);
   text("def",width/2 + 1.3*PPCM, height/2 - 0.5*PPCM);
 
@@ -157,18 +165,19 @@ function drawPredictedWord() {
   fill(255);
   rect(width/2 - 2.0*PPCM, height/2 - 2.0*PPCM, 4.0*PPCM, 1.0*PPCM);
   textAlign(CENTER);
-  textFont("Arial", 16);
+  textFont("Arial", 12);
   fill(0);
   if (current_letter == -1) {
     textFont("Arial", 12);
     text("Swipe up to complete", width/2, height/2 - 1.3 * PPCM);
   }
-  else
-    text(toComplete, width/2, height/2 - 1.3 * PPCM);
+  else {
+    text(toComplete, width/2, height/2 - 1.6 * PPCM);
+    text(toComplete2, width/2, height/2 - 1.2 * PPCM);
+  }
 }
 
-function complete() {
-  currently_typed = currently_typed.substring(0,currently_typed.length-1);
+function complete(wordNumber) {
   getFirstMatch(currently_typed);
   let st = currently_typed.split(" ");
   
@@ -176,19 +185,115 @@ function complete() {
   for (let index = 0; index < st.length-1; index++) {
     newWord += st[index] + " ";
   }
-  currently_typed = newWord + toComplete + " ";
+  if (wordNumber == 1) {
+    currently_typed = newWord + toComplete + " ";
+  }
+  else {
+    currently_typed = newWord + toComplete2 + " ";
+  }
   getFirstMatch(currently_typed);
-
 }
 
-function mouseReleased() {
-  if (clickedY != 0 && clickedY > mouseY+20)
-    complete();
+function mousePressed() {
+  
+  
+  if (draw_finger_arm)
+  {
+    
+    if(mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM, 3.0*PPCM)) {
+      locked = true;
+      clickedX = mouseX;
+      clickedY = mouseY;
+    }
+    else {
+      clickedX = 0;
+      clickedY = 0;
+    }
+
+    // Check if mouse click happened within 'ACCEPT' 
+    // (i.e., submits a phrase and completes a trial)
+    if (mouseClickWithin(width/2 - 2*PPCM, height/2 - 5.1*PPCM, 4.0*PPCM, 2.0*PPCM))
+    {
+      // Saves metrics for the current trial
+      letters_expected += target_phrase.trim().length;
+      letters_entered += currently_typed.trim().length;
+      errors += computeLevenshteinDistance(currently_typed.trim(), target_phrase.trim());
+      entered[current_trial] = currently_typed;
+      trial_end_time = millis();
+      
+      current_trial++;
+      
+      // Check if the user has one more trial/phrase to go
+      if (current_trial < 2)                                           
+      {
+        // Prepares for new trial
+        currently_typed = "";
+        target_phrase = phrases[current_trial];  
+      }
+      else
+      {
+        // The user has completed both phrases for one attempt
+        draw_finger_arm = false;
+        attempt_end_time = millis();
+        
+        printAndSavePerformance();        // prints the user's results on-screen and sends these to the DB
+        attempt++;
+        
+        // Check if the user is about to start their second attempt
+        if (attempt < 2)
+        {
+          second_attempt_button = createButton('START 2ND ATTEMPT');
+          second_attempt_button.mouseReleased(startSecondAttempt);
+          second_attempt_button.position(width/2 - second_attempt_button.size().width/2, height/2 + 220);
+        }
+      }
+    }
+  }
+}
+
+function mouseDragged() {
+  if (locked) {
+    if (mouseX < width/2 - 2.0*PPCM) {
+      if (clickedX != 0 && mouseX < clickedX-20) {
+        current_letter = 0;
+        currently_typed = currently_typed.replace(/.$/,'')
+        locked = false;
+        clickedX = 0;
+        clickedY = 0;
+        getFirstMatch(currently_typed);
+      }
+    }
+    else if (mouseX > width/2 + 2.0*PPCM) {
+      if (clickedX != 0 && mouseX > clickedX+20) {
+        current_letter = '_';
+        currently_typed += " ";
+        locked = false;
+        clickedX = 0;
+        clickedY = 0;
+        getFirstMatch(currently_typed);
+      }
+    }
+    else if (mouseY < height/2 - 1.0*PPCM) {
+      complete(1);
+      locked = false;
+      clickedX = 0;
+      clickedY = 0;
+      getFirstMatch(currently_typed);
+    }
+    else if (mouseY > height/2 + 1.0*PPCM) {
+      complete(2);
+      locked = false;
+      clickedX = 0;
+      clickedY = 0;
+      getFirstMatch(currently_typed);
+    }
+  }
 }
 
 // Evoked when the mouse button was pressed
-function mousePressed()
+function mouseReleased()
 {
+  locked = false;
   time = millis();
   // Only look for mouse presses during the actual test
   if (draw_finger_arm)
@@ -196,17 +301,22 @@ function mousePressed()
     // Check if mouse click happened within the touch input area
     if(mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM, 3.0*PPCM))  
     {
-      clickedX = mouseX;
-      clickedY = mouseY;
-      if(mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 2.0*PPCM/3, 3.0*PPCM/3)) { //space
+      if (clickedY != 0 && clickedY > mouseY+20) {
+        complete(1);
+      }
+      else if (clickedY != 0 && clickedY < mouseY-20) {
+        complete(2);
+      }
+      else if (clickedX != 0 && mouseX > clickedX+20) {
         current_letter = '_';
         currently_typed += " ";
       }
-
-      else if (mouseClickWithin(width/2 - 1.5*PPCM, height/2 - 1.0*PPCM, 2.0*PPCM/3, 3.0*PPCM/3)) { 
+  
+      else if (clickedX != 0 && mouseX < clickedX-20) {
         current_letter = 0;
         currently_typed = currently_typed.replace(/.$/,'')
       }
+
       else if (mouseClickWithin(width/2 - 2.0*PPCM +4.0*PPCM/3, height/2 - 1.0*PPCM, 4.0*PPCM/3, 3.0*PPCM/3)) { // abc
         if (time-lastTime > 600 && (current_letter == 'a' || current_letter == 'b' || current_letter == 'c')) {
           current_letter = 0;
@@ -397,47 +507,6 @@ function mousePressed()
         }
       }
     }
-
-    // Check if mouse click happened within 'ACCEPT' 
-    // (i.e., submits a phrase and completes a trial)
-    else if (mouseClickWithin(width/2 - 2*PPCM, height/2 - 5.1*PPCM, 4.0*PPCM, 2.0*PPCM))
-    {
-      clickedX = mouseX;
-      clickedY = mouseY;
-      // Saves metrics for the current trial
-      letters_expected += target_phrase.trim().length;
-      letters_entered += currently_typed.trim().length;
-      errors += computeLevenshteinDistance(currently_typed.trim(), target_phrase.trim());
-      entered[current_trial] = currently_typed;
-      trial_end_time = millis();
-
-      current_trial++;
-
-      // Check if the user has one more trial/phrase to go
-      if (current_trial < 2)                                           
-      {
-        // Prepares for new trial
-        currently_typed = "";
-        target_phrase = phrases[current_trial];  
-      }
-      else
-      {
-        // The user has completed both phrases for one attempt
-        draw_finger_arm = false;
-        attempt_end_time = millis();
-        
-        printAndSavePerformance();        // prints the user's results on-screen and sends these to the DB
-        attempt++;
-
-        // Check if the user is about to start their second attempt
-        if (attempt < 2)
-        {
-          second_attempt_button = createButton('START 2ND ATTEMPT');
-          second_attempt_button.mouseReleased(startSecondAttempt);
-          second_attempt_button.position(width/2 - second_attempt_button.size().width/2, height/2 + 250);
-        }
-      }
-    }
     else {
       clickedX = 0;
       clickedY = 0;
@@ -481,8 +550,8 @@ function thank() {
   noStroke();
   ellipse(width/2,800,width,40,1);
 
-  let db_ref = database.ref("Opinions");
-  db_ref.push(opinion);
+  //let db_ref = database.ref("Opinions");
+  //db_ref.push(opinion);
 }
 
 // Print and save results at the end of 2 trials
@@ -562,35 +631,35 @@ function printAndSavePerformance()
   }
   else
   {
-      // Change the firebase config
-      var firebaseConfig = {
-        apiKey: "AIzaSyAXut58LmRSwNrNWa56WH8hiPya4OuhAbQ",
-        authDomain: "bakeoff3-1c7b1.firebaseapp.com",
-        databaseURL: "https://bakeoff3-1c7b1-default-rtdb.europe-west1.firebasedatabase.app/",
-        storageBucket: "bakeoff3-1c7b1.appspot.com"
-      };
-      if (attempt === 0)
-      {
-          firebase.initializeApp(firebaseConfig);
-          database = firebase.database();
-      }
-      // Add user performance results
-      let db_ref = database.ref("First Iteration");
-      db_ref.push(attempt_data);
-      var topUserPostsRef = firebase.database().ref("First Iteration").orderByChild('wpm_w_penalty').limitToLast(10);
-      textFont("Arial", 18);
-      text ("Leaderboards", width/2, 165);
-      var yIncrease = 25;
-      var places = 10;
-      topUserPostsRef.on('value', (snapshot) => {
-          snapshot.forEach((childSnapshot) => {
-              var name = childSnapshot.val().assessed_by;
-              var score = childSnapshot.val().wpm_w_penalty;
-              text(places + " - " + name+ " with "+ score.toFixed(4) + " words per minute.", width/2, 480-yIncrease);
-              places -= 1;
-              yIncrease += 28;
-          });
-      });
+    // Change the firebase config
+    var firebaseConfig2 = {
+      apiKey: "AIzaSyAXut58LmRSwNrNWa56WH8hiPya4OuhAbQ",
+      authDomain: "bakeoff3-1c7b1.firebaseapp.com",
+      databaseURL: "https://bakeoff3-1c7b1-default-rtdb.europe-west1.firebasedatabase.app/",
+      storageBucket: "bakeoff3-1c7b1.appspot.com"
+    };
+    if (attempt === 0)
+    {
+      firebase.initializeApp(firebaseConfig2);
+      database = firebase.database();
+    }
+    // Add user performance results
+    let db_ref = database.ref("First Iteration");
+    db_ref.push(attempt_data);
+    var topUserPostsRef = firebase.database().ref("First Iteration").orderByChild('wpm_w_penalty').limitToLast(10);
+    textFont("Arial", 18);
+    text ("Leaderboards", width/2, 165);
+    var yIncrease = 25;
+    var places = 10;
+    topUserPostsRef.on('value', (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+            var name = childSnapshot.val().assessed_by;
+            var score = childSnapshot.val().wpm_w_penalty;
+            text(places + " - " + name+ " with "+ score.toFixed(4) + " words per minute.", width/2, 480-yIncrease);
+            places -= 1;
+            yIncrease += 28;
+        });
+    });
   }
 }
 
