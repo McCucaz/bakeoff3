@@ -565,8 +565,8 @@ function thank() {
   noStroke();
   ellipse(width/2,800,width,40,1);
 
-  //let db_ref = database.ref("Opinions");
-  //db_ref.push(opinion);
+  let db_ref = database.ref("Opinions");
+  db_ref.push(opinion);
 }
 
 // Print and save results at the end of 2 trials
