@@ -131,7 +131,19 @@ function draw()
     noFill();
     rect(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM, 3.0*PPCM);
 
-
+    let v0 = createVector(width/2, height/2 + 2*PPCM);
+    let v1 = createVector(width/2 - 2*PPCM, height/2 + 2*PPCM);
+    let v2 = createVector(width/2 + 2*PPCM, height/2 + 2*PPCM);
+    push();
+    noStroke();
+    fill(0);
+    textFont("Arial", 9);
+    text("space",width/2 -1*PPCM, height/2 + 1.9*PPCM);
+    text("delete",width/2 + 1*PPCM, height/2 + 1.9*PPCM);
+    drawArrow(v0, v1, 'red');
+    drawArrow(v0, v2, 'green');
+    pop();
+    stroke(0, 255, 0);
     draw2Dkeyboard();       // draws our basic 2D keyboard UI
 
     drawFatFinger();        // draws the finger that simulates the 'fat finger' problem
@@ -169,7 +181,8 @@ function drawPredictedWord() {
   fill(0);
   if (current_letter == -1) {
     textFont("Arial", 12);
-    text("Swipe up to complete", width/2, height/2 - 1.3 * PPCM);
+    text("Swipe up", width/2, height/2 - 1.6 * PPCM);
+    text("Swipe down", width/2, height/2 - 1.2 * PPCM);
   }
   else {
     text(toComplete, width/2, height/2 - 1.6 * PPCM);
@@ -280,7 +293,7 @@ function mouseDragged() {
       clickedY = 0;
       getFirstMatch(currently_typed);
     }
-    else if (mouseY > height/2 + 1.0*PPCM) {
+    else if (mouseY > height/2 + 2.0*PPCM) {
       complete(2);
       locked = false;
       clickedX = 0;
@@ -682,4 +695,21 @@ function windowResized()
   // Starts drawing the watch immediately after we go fullscreen (DO NO CHANGE THIS!)
   draw_finger_arm = true;
   attempt_start_time = millis();
+}
+
+
+function drawArrow(base, vec, color) {
+  push();
+  let connectingVector = createVector(vec.x-base.x, vec.y-base.y);
+  let weight = 2;
+  stroke(color);
+  strokeWeight(weight);
+  fill(color);
+  translate(base.x, base.y);
+  rotate(connectingVector.heading());
+  line(0, 0, connectingVector.mag() - weight, 0)
+  let arrowSize = 4;
+  translate(connectingVector.mag() - arrowSize - weight, 0);
+  triangle(0, arrowSize / 2, 0, -arrowSize / 2, arrowSize, 0);
+  pop();
 }
