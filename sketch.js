@@ -548,6 +548,8 @@ function startSecondAttempt()
   
   // Show the watch and keyboard again
   second_attempt_button.remove();
+  submit_button.remove();
+  comments_input.remove();
   draw_finger_arm      = true;
   attempt_start_time   = millis();
 }
@@ -602,16 +604,14 @@ function printAndSavePerformance()
   text("WPM with penalty: " + wpm_w_penalty.toFixed(2), width / 2, height / 2 + h+80);
   text("CPS: "+CPS.toFixed(2), width / 2, height / 2 + h+100);
 
-  if (attempt > 0) {
     
-    text("If you have any suggestions or advices that would increase your performance, please write them down below.", width/2, 800);
-    comments_input = createInput('');                                 // create input field
-    comments_input.position(width/2-200, 830);
-    comments_input.size(400,30);
-    submit_button = createButton('SUBMIT');
-    submit_button.position(width/2 - submit_button.width/2, 900);
-    submit_button.mouseReleased(thank);
-  }
+  text("If you have any suggestions or advices that would increase your performance, please write them down below.", width/2, 800);
+  comments_input = createInput('');                                 // create input field
+  comments_input.position(width/2-200, 830);
+  comments_input.size(400,30);
+  submit_button = createButton('SUBMIT');
+  submit_button.position(width/2 - submit_button.width/2, 900);
+  submit_button.mouseReleased(thank);
 
   // Saves results (DO NOT CHANGE!)
   let attempt_data = 
@@ -645,34 +645,39 @@ function printAndSavePerformance()
   else
   {
     // Change the firebase config
-    var firebaseConfig2 = {
-      apiKey: "AIzaSyAXut58LmRSwNrNWa56WH8hiPya4OuhAbQ",
-      authDomain: "bakeoff3-1c7b1.firebaseapp.com",
-      databaseURL: "https://bakeoff3-1c7b1-default-rtdb.europe-west1.firebasedatabase.app/",
-      storageBucket: "bakeoff3-1c7b1.appspot.com"
-    };
     if (attempt === 0)
     {
+      var firebaseConfig2 = {
+        apiKey: "AIzaSyAXut58LmRSwNrNWa56WH8hiPya4OuhAbQ",
+        authDomain: "bakeoff3-1c7b1.firebaseapp.com",
+        databaseURL: "https://bakeoff3-1c7b1-default-rtdb.europe-west1.firebasedatabase.app/",
+        storageBucket: "bakeoff3-1c7b1.appspot.com"
+      };
       firebase.initializeApp(firebaseConfig2);
       database = firebase.database();
     }
     // Add user performance results
-    let db_ref = database.ref("First Iteration");
+    let db_ref = database.ref("Third Iteration");
     db_ref.push(attempt_data);
-    var topUserPostsRef = firebase.database().ref("First Iteration").orderByChild('wpm_w_penalty').limitToLast(10);
+    let topUserPostsRef = firebase.database().ref("Third Iteration").orderByChild('wpm_w_penalty').limitToLast(10);
     textFont("Arial", 18);
-    text ("Leaderboards", width/2, 165);
-    var yIncrease = 25;
-    var places = 10;
+    let yIncrease = 25;
+    let places = 10;
     topUserPostsRef.on('value', (snapshot) => {
-        snapshot.forEach((childSnapshot) => {
-            var name = childSnapshot.val().assessed_by;
-            var score = childSnapshot.val().wpm_w_penalty;
-            text(places + " - " + name+ " with "+ score.toFixed(4) + " words per minute.", width/2, 480-yIncrease);
-            places -= 1;
-            yIncrease += 28;
-        });
+      snapshot.forEach((childSnapshot) => {
+        let name = childSnapshot.val().assessed_by;
+        let score = childSnapshot.val().wpm_w_penalty;
+        text(places + " - " + name+ " with "+ score.toFixed(4) + " words per minute.", width/2, 480-yIncrease);
+        places -= 1;
+        yIncrease += 28;
+      });
     });
+    push();
+    noStroke();
+    fill(0);
+    rect(width/2 - 200, 0, 400, 180);
+    pop();
+    text ("Leaderboards", width/2, 165);
   }
 }
 
