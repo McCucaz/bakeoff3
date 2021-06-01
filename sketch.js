@@ -579,7 +579,7 @@ function printAndSavePerformance()
   let penalty          = max(0, (errors - freebie_errors) / attempt_duration); 
   let wpm_w_penalty    = max((wpm - penalty),0);                                   // minus because higher WPM is better: NET WPM
   let timestamp        = day() + "/" + month() + "/" + year() + "  " + hour() + ":" + minute() + ":" + second();
-  let CPS              = letters_entered / attempt_duration;
+  let CPS              = (letters_entered / attempt_duration)*60;
   
   background(color(0,0,0));    // clears screen
   cursor();                    // shows the cursor again
@@ -604,7 +604,6 @@ function printAndSavePerformance()
   text("WPM with penalty: " + wpm_w_penalty.toFixed(2), width / 2, height / 2 + h+80);
   text("CPS: "+CPS.toFixed(2), width / 2, height / 2 + h+100);
 
-    
   text("If you have any suggestions or advices that would increase your performance, please write them down below.", width/2, 800);
   comments_input = createInput('');                                 // create input field
   comments_input.position(width/2-200, 830);
