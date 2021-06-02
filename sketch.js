@@ -50,6 +50,9 @@ let clickedX;
 let clickedY;
 let locked;
 
+let swipeUp;
+let swipeDown;
+
 // Runs once before the setup() and loads our data (images, phrases)
 function preload()
 {    
@@ -60,10 +63,16 @@ function preload()
   // Loads the target phrases (DO NOT CHANGE!)
   phrases = loadStrings("data/phrases.txt");
 
+  // Loads UI elements for our keyboard
+  erase = loadImage("erase.png");
+
   // Loads prediction word lists
   possibleWords = loadStrings("data/wordlist.txt");
   commonPairs = loadStrings("data/pairwords.txt");
   console.log("loaded");
+
+  swipeUp = loadImage("swipeup.PNG");
+  swipeDown = loadImage("swipedown.PNG");
 }
 
 function getFirstMatch(string) {
@@ -131,18 +140,6 @@ function draw()
     noFill();
     rect(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM, 3.0*PPCM);
 
-    let v0 = createVector(width/2, height/2 + 2*PPCM);
-    let v1 = createVector(width/2 - 2*PPCM, height/2 + 2*PPCM);
-    let v2 = createVector(width/2 + 2*PPCM, height/2 + 2*PPCM);
-    push();
-    noStroke();
-    fill(0);
-    textFont("Arial", 9);
-    text("erase",width/2 -1*PPCM, height/2 + 1.9*PPCM);
-    text("space",width/2 + 1*PPCM, height/2 + 1.9*PPCM);
-    drawArrow(v0, v1, 'red');
-    drawArrow(v0, v2, 'green');
-    pop();
     stroke(0, 255, 0);
     draw2Dkeyboard();       // draws our basic 2D keyboard UI
 
@@ -156,6 +153,8 @@ function draw2Dkeyboard()
   // Writes the current letter
   textFont("Arial", 24 - display_size/6 );
   fill(0);
+  text("_",width/2 - 1.6*PPCM, height/2 - 0.5*PPCM);
+  image(erase, width/2 - PPCM, height/2 - 0.5*PPCM - 5, 20, 20);
   text("abc",width/2, height/2 - 0.5*PPCM);
   text("def",width/2 + 1.3*PPCM, height/2 - 0.5*PPCM);
 
@@ -320,12 +319,12 @@ function mouseReleased()
       else if (clickedY != 0 && clickedY < mouseY-20) {
         complete(2);
       }
-      else if (clickedX != 0 && mouseX > clickedX+20) {
+      else if (clickedX != 0 && mouseX > clickedX+20 || mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 2.0*PPCM/3, 3.0*PPCM/3)) {
         current_letter = '_';
         currently_typed += " ";
       }
   
-      else if (clickedX != 0 && mouseX < clickedX-20) {
+      else if (clickedX != 0 && mouseX < clickedX-20 || mouseClickWithin(width/2 - 1.5*PPCM, height/2 - 1.0*PPCM, 2.0*PPCM/3, 3.0*PPCM/3)) {
         current_letter = 0;
         currently_typed = currently_typed.replace(/.$/,'')
       }
