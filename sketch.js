@@ -578,7 +578,7 @@ function printAndSavePerformance()
   let penalty          = max(0, (errors - freebie_errors) / attempt_duration); 
   let wpm_w_penalty    = max((wpm - penalty),0);                                   // minus because higher WPM is better: NET WPM
   let timestamp        = day() + "/" + month() + "/" + year() + "  " + hour() + ":" + minute() + ":" + second();
-  let CPS              = (letters_entered / attempt_duration)*60;
+  let CPS              = (letters_entered / attempt_duration)/60;
   
   background(color(0,0,0));    // clears screen
   cursor();                    // shows the cursor again
