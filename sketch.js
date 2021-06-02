@@ -7,7 +7,7 @@
 
 // Database (CHANGE THESE!)
 const GROUP_NUMBER   = 46;      // add your group number here as an integer (e.g., 2, 3)
-const BAKE_OFF_DAY   = false;  // set to 'true' before sharing during the simulation and bake-off days
+const BAKE_OFF_DAY   = true;  // set to 'true' before sharing during the simulation and bake-off days
 
 let PPI, PPCM;                 // pixel density (DO NOT CHANGE!)
 let second_attempt_button;     // button that starts the second attempt (DO NOT CHANGE!)
@@ -547,8 +547,10 @@ function startSecondAttempt()
   
   // Show the watch and keyboard again
   second_attempt_button.remove();
-  submit_button.remove();
-  comments_input.remove();
+  if(!BAKE_OFF_DAY) {
+    submit_button.remove();
+    comments_input.remove();
+  }
   draw_finger_arm      = true;
   attempt_start_time   = millis();
 }
@@ -603,13 +605,15 @@ function printAndSavePerformance()
   text("WPM with penalty: " + wpm_w_penalty.toFixed(2), width / 2, height / 2 + h+80);
   text("CPS: "+CPS.toFixed(2), width / 2, height / 2 + h+100);
 
-  text("If you have any suggestions or advices that would increase your performance, please write them down below.", width/2, 800);
-  comments_input = createInput('');                                 // create input field
-  comments_input.position(width/2-200, 830);
-  comments_input.size(400,30);
-  submit_button = createButton('SUBMIT');
-  submit_button.position(width/2 - submit_button.width/2, 900);
-  submit_button.mouseReleased(thank);
+  if(!BAKE_OFF_DAY) {
+    text("If you have any suggestions or advices that would increase your performance, please write them down below.", width/2, 800);
+    comments_input = createInput('');                                 // create input field
+    comments_input.position(width/2-200, 830);
+    comments_input.size(400,30);
+    submit_button = createButton('SUBMIT');
+    submit_button.position(width/2 - submit_button.width/2, 900);
+    submit_button.mouseReleased(thank);
+  }
 
   // Saves results (DO NOT CHANGE!)
   let attempt_data = 
