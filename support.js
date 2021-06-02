@@ -1,6 +1,6 @@
 // Support variables & functions (DO NOT CHANGE!)
 
-let student_ID_form, display_size_form, start_button;                 // Initial input variables
+let student_ID_form, display_size_form, proceed_button, start_button;                 // Initial input variables
 let student_ID, display_size;                                         // User input parameters
 
 // Prints the initial UI that prompts that ask for student ID and screen size
@@ -35,10 +35,54 @@ function drawUserIDScreen()
   display_size_label.id('input');
   display_size_label.position(10, display_size_pos_y_offset);
   
+  // 3. Proceed button
+  proceed_button = createButton('PROCEED');
+  proceed_button.mouseReleased(drawInstructionsScreen);
+  proceed_button.position(width/2 - proceed_button.size().width/2, height/2 - proceed_button.size().height/2);
+}
+
+// Prints the instructions of the smartwatch
+function drawInstructionsScreen()
+{ 
+  if (validID() && validSize())
+  {
+    // Saves student and display information
+    student_ID = parseInt(student_ID_form.value());
+    display_size = parseInt(display_size_form.value());
+
+    // Deletes UI elements
+    main_text.remove();
+    student_ID_form.remove();
+    student_ID_label.remove();
+    display_size_form.remove();
+    display_size_label.remove();
+    proceed_button.remove();  
+    background(color(0,0,0));                                          // sets background to black
+    
+    tip1 = createDiv("Swipe up to complete with the up predicted word");
+    tip1.id('main_text');
+    tip1.position(15,100);
+    image(swipeUp, 500, 0);
+
+    tip2 = createDiv("Swipe down to complete with the down predicted word");
+    tip2.id('main_text');
+    tip2.position(15,250);
+    image(swipeDown, 500, 200);
+
+    tip3 = createDiv("To erase, you can both click the erase button or swipe left");
+    tip3.id('main_text');
+    tip3.position(15,340);
+    
+    tip4 = createDiv("To make a space you can both click the space button or swipe right");
+    tip4.id('main_text');
+    tip4.position(15,360);
+
+
   // 3. Start button
   start_button = createButton('START');
   start_button.mouseReleased(startTest);
-  start_button.position(width/2 - start_button.size().width/2, height/2 - start_button.size().height/2);
+  start_button.position(width/2 - proceed_button.size().width/2, height/2 - proceed_button.size().height/2 + 150);
+  }
 }
 
 // Verifies if the student ID is a number, and within an acceptable range
@@ -66,24 +110,14 @@ function validSize()
 // Starts the test (i.e., target selection task)
 function startTest()
 {
-  if (validID() && validSize())
-  {
-    // Saves student and display information
-    student_ID = parseInt(student_ID_form.value());
-    display_size = parseInt(display_size_form.value());
-
-    // Deletes UI elements
-    main_text.remove();
-    student_ID_form.remove();
-    student_ID_label.remove();
-    display_size_form.remove();
-    display_size_label.remove();
-    start_button.remove();  
-
-    // Goes fullscreen and starts test
-    fullscreen(!fullscreen());
-    testStartTime = millis();
-  }
+  tip1.remove();
+  tip2.remove();
+  tip3.remove();
+  tip4.remove();
+  start_button.remove();
+  // Goes fullscreen and starts test
+  fullscreen(!fullscreen());
+  testStartTime = millis();
 }
 
 function getNextChar(char){
